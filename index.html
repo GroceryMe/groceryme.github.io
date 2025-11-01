@@ -119,7 +119,7 @@
         var iosBadge = document.querySelector('.store-badge--apple');
         if (!iosBadge) return;
         iosBadge.addEventListener('click', function() {
-          if (typeof gtag === 'function') {
+          if (typeof gtag !== 'undefined') {
             gtag('event', 'download_ios');
             console.log('[analytics] download_ios tracked');
           }
@@ -127,7 +127,7 @@
         var androidBadge = document.querySelector('.store-badge--google');
         if (androidBadge) {
           androidBadge.addEventListener('click', function() {
-            if (typeof gtag === 'function') {
+            if (typeof gtag !== 'undefined') {
               gtag('event', 'download_android');
               console.log('[analytics] download_android tracked');
             }
