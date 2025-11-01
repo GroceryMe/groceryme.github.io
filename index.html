@@ -114,6 +114,21 @@
         <p>© 2025 Basket Wise</p>
       </div>
     </footer>
+    <div class="modal" id="beta-modal" aria-hidden="true">
+      <div class="modal__backdrop" data-close="true"></div>
+      <div class="modal__dialog" role="dialog" aria-modal="true" aria-labelledby="beta-modal-title">
+        <button type="button" class="modal__close" aria-label="Close" data-close="true">×</button>
+        <h3 id="beta-modal-title">Join the beta</h3>
+        <p class="modal__lead">Enter your email to get early access.</p>
+        <form id="beta-form" class="modal__form" novalidate>
+          <input type="email" id="beta-email" name="email" placeholder="you@example.com" required />
+          <input type="hidden" id="beta-platform" name="platform" />
+          <button type="submit" class="button primary small">Submit</button>
+          <div class="modal__error" id="beta-error" aria-live="polite"></div>
+          <div class="modal__success" id="beta-success" aria-live="polite" hidden>Thanks! You're on the list.</div>
+        </form>
+      </div>
+    </div>
     <script>
       (function() {
         var iosBadge = document.querySelector('.store-badge--apple');
@@ -123,6 +138,7 @@
             gtag('event', 'download_ios');
             console.log('[analytics] download_ios tracked');
           }
+          openModal('ios');
         });
         var androidBadge = document.querySelector('.store-badge--google');
         if (androidBadge) {
@@ -131,8 +147,140 @@
               gtag('event', 'download_android');
               console.log('[analytics] download_android tracked');
             }
+            openModal('android');
           });
         }
+
+        var modal = document.getElementById('beta-modal');
+        var form = document.getElementById('beta-form');
+        var emailInput = document.getElementById('beta-email');
+        var platformInput = document.getElementById('beta-platform');
+        var errorEl = document.getElementById('beta-error');
+        var successEl = document.getElementById('beta-success');
+        var lastFocused = null;
+
+        function openModal(platform) {
+          lastFocused = document.activeElement;
+          platformInput.value = platform;
+          modal.classList.add('is-open');
+          modal.setAttribute('aria-hidden', 'false');
+          errorEl.textContent = '';
+          successEl.hidden = true;
+          emailInput.disabled = false;
+          form.querySelector('button[type="submit"]').disabled = false;
+          setTimeout(function() { emailInput.focus(); }, 0);
+        }
+
+        function closeModal() {
+          modal.classList.remove('is-open');
+          modal.setAttribute('aria-hidden', 'true');
+          if (lastFocused && typeof lastFocused.focus === 'function') {
+            lastFocused.focus();
+          }
+        }
+
+        modal.addEventListener('click', function(e) {
+          if (e.target && e.target.getAttribute('data-close') === 'true') {
+            closeModal();
+          }
+        });
+
+        document.addEventListener('keydown', function(e) {
+          if (modal.classList.contains('is-open') && e.key === 'Escape') {
+            closeModal();
+          }
+        });
+
+        function appendToGoogleSheet(payload) {
+          try {
+            var webAppUrl = "https://script.google.com/macros/s/AKfycbzaztu1qI-JbtxWXxyW7OVQxrtOO9c2__ugdBWsoKBmhvsxzmKC6umZHpdMoI1z6ZmmdA/exec";
+            if (!webAppUrl) {
+              console.warn('[beta] SHEETS_WEB_APP_URL missing, skipping append');
+              return;
+            }
+            var body = new URLSearchParams({
+              dateSubmitted: payload.ts,
+              email: payload.email,
+              platform: payload.platform
+            }).toString();
+            fetch(webAppUrl, {
+              method: 'POST',
+              mode: 'no-cors',
+              headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+              body: body
+            }).then(function() {
+              console.log('[beta] appended to Google Sheet via Web App (no-cors)');
+            }).catch(function(err) {
+              console.error('[beta] Web App append error', err);
+            });
+          } catch (err) {
+            console.error('[beta] Web App append exception', err);
+          }
+        }
+
+        form.addEventListener('submit', function(e) {
+          e.preventDefault();
+          errorEl.textContent = '';
+
+          var email = (emailInput.value || '').trim();
+          var platform = (platformInput.value || '').trim();
+          if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+            errorEl.textContent = 'Please enter a valid email address.';
+            emailInput.focus();
+            return;
+          }
+
+          var submitBtn = form.querySelector('button[type="submit"]').disabled = true;
+          emailInput.disabled = true;
+
+          var payload = { email: email, platform: platform, ts: new Date().toISOString() };
+
+          var endpoint = window.BETA_SIGNUP_ENDPOINT;
+          var done = function(payloadDone) {
+            successEl.hidden = false;
+            if (typeof gtag !== 'undefined') {
+              gtag('event', 'beta_signup_submitted', { platform: platform });
+            }
+            appendToGoogleSheet(payloadDone);
+          };
+
+          if (typeof endpoint === 'string' && endpoint) {
+            try {
+              fetch(endpoint, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+              }).then(function(res) {
+                if (!res.ok) throw new Error('Request failed');
+                return res.text();
+              }).then(function() { done(payload); })
+                .catch(function(err) {
+                  console.error('[beta] submit failed', err);
+                  errorEl.textContent = 'Could not submit right now. Please try again later.';
+                  emailInput.disabled = false;
+                  form.querySelector('button[type="submit"]').disabled = false;
+                });
+            } catch (err) {
+              console.error('[beta] submit error', err);
+              errorEl.textContent = 'Could not submit right now. Please try again later.';
+              emailInput.disabled = false;
+              form.querySelector('button[type="submit"]').disabled = false;
+            }
+          } else {
+            try {
+              var key = 'bw_beta_signups';
+              var list = [];
+              try { list = JSON.parse(localStorage.getItem(key) || '[]'); } catch(_) {}
+              list.push(payload);
+              localStorage.setItem(key, JSON.stringify(list));
+              console.log('[beta] captured email for', platform);
+              done(payload);
+            } catch (e2) {
+              console.warn('[beta] local save failed', e2);
+              done(payload);
+            }
+          }
+        });
       })();
     </script>
   </body>

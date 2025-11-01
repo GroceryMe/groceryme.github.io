@@ -134,3 +134,39 @@ body {
 }
 
 
+/* Modal */
+.modal { position: fixed; inset: 0; display: none; z-index: 100; }
+.modal.is-open { display: block; }
+.modal__backdrop { position: absolute; inset: 0; background: rgba(0,0,0,0.55); backdrop-filter: blur(2px); }
+.modal__dialog {
+  position: relative;
+  margin: 6vh auto 0;
+  max-width: 420px;
+  background: var(--bg-elev);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  box-shadow: var(--shadow);
+  padding: 18px 18px 16px;
+}
+.modal__close {
+  position: absolute;
+  top: 6px;
+  right: 8px;
+  background: transparent;
+  color: var(--muted);
+  border: 0;
+  font-size: 22px;
+  cursor: pointer;
+}
+.modal__lead { margin: 6px 0 12px; color: var(--muted); }
+.modal__form { display: grid; grid-template-columns: 1fr auto; gap: 10px; }
+.modal__form input[type="email"] {
+  width: 100%;
+  padding: 10px 12px;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  background: var(--bg-elev-2);
+  color: var(--text);
+}
+.modal__error { grid-column: 1 / -1; color: #fca5a5; font-size: 14px; min-height: 18px; }
+.modal__success { grid-column: 1 / -1; color: var(--accent); font-weight: 600; }
