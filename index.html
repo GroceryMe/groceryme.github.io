@@ -75,18 +75,16 @@
             <h1 class="hero__title">See exactly where your grocery money goes</h1>
             <p class="hero__subtitle">Snap receipts. Auto‑categorize items. Insights that actually help you spend smarter.</p>
             <div class="actions">
-              <a class="store-badge store-badge--apple" href="#" target="_blank" rel="noopener" aria-label="Download on the App Store">
+              <a class="store-badge store-badge--apple" aria-label="Download on the App Store">
                 <img
                   src="https://tools.applemediaservices.com/api/badges/download-on-the-app-store/white/en-US?size=200x66"
                   alt="Download on the App Store"
-                  loading="lazy"
                 />
               </a>
-              <a class="store-badge store-badge--google" href="#" target="_blank" rel="noopener" aria-label="Get it on Google Play">
+              <a class="store-badge store-badge--google" aria-label="Get it on Google Play">
                 <img
                   src="https://play.google.com/intl/en_us/badges/static/images/badges/en_badge_web_generic.png"
                   alt="Get it on Google Play"
-                  loading="lazy"
                 />
               </a>
             </div>
@@ -116,6 +114,27 @@
         <p>© 2025 Basket Wise</p>
       </div>
     </footer>
+    <script>
+      (function() {
+        var iosBadge = document.querySelector('.store-badge--apple');
+        if (!iosBadge) return;
+        iosBadge.addEventListener('click', function() {
+          if (typeof gtag === 'function') {
+            gtag('event', 'download_ios');
+            console.log('[analytics] download_ios tracked');
+          }
+        });
+        var androidBadge = document.querySelector('.store-badge--google');
+        if (androidBadge) {
+          androidBadge.addEventListener('click', function() {
+            if (typeof gtag === 'function') {
+              gtag('event', 'download_android');
+              console.log('[analytics] download_android tracked');
+            }
+          });
+        }
+      })();
+    </script>
   </body>
 </html>
 
