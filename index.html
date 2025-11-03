@@ -56,6 +56,25 @@
       gtag('js', new Date());
       gtag('config', 'G-2ZSZ3NZVJM');
     </script>
+    <!-- Event snippet for Submit lead form conversion page -->
+    <script>
+      function gtag_report_conversion(url) {
+        var callback = function () {
+          if (typeof url !== 'undefined') {
+            window.location = url;
+          }
+        };
+        if (typeof gtag === 'function') {
+          gtag('event', 'conversion', {
+            send_to: 'AW-16635992488/HDt8CNCN4sAZEKiz1Pw9',
+            value: 1.0,
+            currency: 'GBP',
+            event_callback: callback
+          });
+        }
+        return false;
+      }
+    </script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
@@ -243,6 +262,9 @@
             successEl.hidden = false;
             if (typeof gtag !== 'undefined') {
               gtag('event', 'beta_signup_submitted', { platform: platform });
+            }
+            if (typeof gtag_report_conversion === 'function') {
+              gtag_report_conversion();
             }
             appendToGoogleSheet(payloadDone);
           };
